@@ -5,11 +5,15 @@ from os import mkdir, path
 
 import discord
 import openai
+from dotenv import load_dotenv
 
-bot = discord.Bot()
-openai.api_key_path = "OPENAI_API_KEY"
-with open("DISCORD_TOKEN", "r") as f:
-    DISCORD_TOKEN = f.read()
+intents = discord.Intents.default()
+intents.message_content = True
+bot = discord.Bot(intents=intents)
+
+load_dotenv()
+DISCORD_TOKEN = (os.environ["DISCORD_TOKEN"])
+openai.api_key = os.environ["OPENAI_API_KEY"]
 
 
 def ChatGPT_core(content, system=False, user=None, send_response=True):
@@ -56,6 +60,7 @@ def ChatGPT_core(content, system=False, user=None, send_response=True):
 
 @bot.event
 async def on_ready():
+    print(f"Logged in as {bot.user}")
     print("Bot is Online!")
 
 
