@@ -1,7 +1,7 @@
 import asyncio
 import json
 import os
-from os import mkdir, path
+from os import makedirs, path
 
 import discord
 import openai
@@ -19,10 +19,16 @@ openai.api_key = os.environ["OPENAI_API_KEY"]
 def ChatGPT_core(content, system=False, user=None, send_response=True):
     jsonfile = f"./log/{user}/log.json"
 
-    if path.isfile(jsonfile) is False:
-        mkdir(f"./log/{user}")
+    def validate_file_and_mkdir():
+        try:
+            if path.isfile(f"./log/{user}") is False:
+                makedirs(f"./log/{user}")
+        except FileExistsError:
+            print("すでに存在するファイルのため、ファイルの作成をスキップしました。")
         with open(jsonfile, "w", encoding="utf-8") as f:
             json.dump([], f)
+
+    validate_file_and_mkdir()
 
     def write_log(log):
         with open(jsonfile, encoding="utf-8") as f:
@@ -107,11 +113,13 @@ class Discord(bot):
 
     @setting.command(name="initialize_log", description="ログを初期化します。")
     async def initialize_log(ctx):
-        if path.isfile(f"./log/{ctx.user.id}/log.json") is False:
-            mkdir(f"./log/{ctx.user.id}")
+        try:
+            if path.isfile(f"./log/{ctx.user.id}") is False:
+                makedirs(f"./log/{ctx.user.id}")
+        except FileExistsError:
+            print("すでに存在するファイルのため、ファイルの作成をスキップしました。")
         with open(f"./log/{ctx.user.id}/log.json", "w", encoding="utf-8") as f:
             json.dump([], f)
         await ctx.respond("ログを初期化しました。")
-
 
     bot.run(DISCORD_TOKEN)
