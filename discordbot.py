@@ -12,7 +12,7 @@ intents.message_content = True
 bot = discord.Bot(intents=intents)
 
 load_dotenv()
-DISCORD_TOKEN = (os.environ["DISCORD_TOKEN"])
+DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
 
@@ -32,14 +32,11 @@ def ChatGPT_core(content, system=False, user=None, send_response=True):
 
     def write_log(log):
         with open(jsonfile, encoding="utf-8") as f:
-                listObj = []
-                listObj = json.load(f)
-                listObj.append(log)
+            listObj = []
+            listObj = json.load(f)
+            listObj.append(log)
         with open(jsonfile, "w", encoding="utf-8") as f:
-            json.dump(listObj, f, indent=4,
-                        separators=(',', ': '),
-                        ensure_ascii=False
-                        )
+            json.dump(listObj, f, indent=4, separators=(",", ": "), ensure_ascii=False)
 
     messages = {"role": "user", "content": content}
     if system == True:
@@ -52,12 +49,9 @@ def ChatGPT_core(content, system=False, user=None, send_response=True):
         with open(jsonfile, "r", encoding="utf-8") as f:
             loaded = json.load(f)
 
-        response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=loaded
-            )
+        response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=loaded)
 
-        res = (response["choices"][0]["message"]["content"])
+        res = response["choices"][0]["message"]["content"]
         log = {"role": "assistant", "content": res}
         write_log(log)
 
@@ -70,7 +64,7 @@ async def on_ready():
     print("Bot is Online!")
 
 
-class Discord(bot):
+class Discord:
     chatgpt = discord.SlashCommandGroup(name="chatgpt", description="root commands")
     general = chatgpt.create_subgroup("general", description="general commands")
     setting = chatgpt.create_subgroup("setting", description="setting commands")
@@ -78,12 +72,13 @@ class Discord(bot):
 
     bot.add_application_command(chatgpt)
 
-
     @general.command(name="chat", description="ChatGPTに質問したい時のコマンドです。")
     async def chat(
-        ctx:discord.Interaction,
-        content: discord.Option(discord.SlashCommandOptionType.string, "質問したい内容を記述してください")):
-
+        ctx: discord.Interaction,
+        content: discord.Option(
+            discord.SlashCommandOptionType.string, "質問したい内容を記述してください"
+        ),
+    ):
         await ctx.response.defer(ephemeral=False)
         result = ChatGPT_core(content, False, ctx.user.id)
 
@@ -91,10 +86,16 @@ class Discord(bot):
 
     @general.command(name="system", description="ChatGPTに定義したい時のコマンドです。")
     async def system(
-        ctx:discord.Interaction,
-        content: discord.Option(discord.SlashCommandOptionType.string, "何を定義しますか？", choices=['You are a helpful assistant.']),
-        if_send: discord.Option(discord.SlashCommandOptionType.boolean, "定義と同時に、送信したい場合は `True` に設定してください")=False):
-
+        ctx: discord.Interaction,
+        content: discord.Option(
+            discord.SlashCommandOptionType.string,
+            description="何を定義しますか？",
+            choices=["You are a helpful assistant."],
+        ),
+        if_send: discord.Option(
+            discord.SlashCommandOptionType.boolean, "定義と同時に、送信したい場合は `True` に設定してください"
+        ) = False,
+    ):
         await ctx.response.defer(ephemeral=False)
         result = ChatGPT_core(content, True, ctx.user.id, if_send)
 
@@ -102,7 +103,6 @@ class Discord(bot):
             await ctx.respond(result)
         else:
             await ctx.respond("ChatGPTに定義を設定しました。")
-
 
     @debug.command(name="ping", description="Botにpingを送信します。")
     async def ping(ctx):
